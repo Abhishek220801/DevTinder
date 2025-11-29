@@ -1,23 +1,20 @@
-export const adminAuth = (req, res, next) => {
-    console.log(`Admin auth is getting checked!!`)
-    const token = 'xyz';
-    const isAdminAuthorized= token==='xyz';
-    if(!isAdminAuthorized){
-        res.status(401).send('Unauthorized request')
-    } else {
-        console.log(`Admin auth passed!`)
+import jwt from 'jsonwebtoken';
+import User from '../models/user.js';
+
+export const userAuth = async (req, res, next) => {
+    try{
+        // Read the token from the req cookies
+        const {token} = req.cookies;
+    
+        const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+        const {_id} = decodedObj;
+        const user = await User.findById(_id);
+        if(!user)
+            throw new Error('User not found');
+        req.user = user;
         next();
     }
-}
-
-export const userAuth = (req, res, next) => {
-    console.log(`User auth is getting checked!!`)
-    const token = 'xyz';
-    const isUserAuthorized= token==='xyz';
-    if(!isUserAuthorized){
-        res.status(401).send('Unauthorized request')
-    } else {
-        console.log(`User auth passed!`)
-        next();
+    catch(err){
+        return res.status(400).send('ERROR : ' + err.message);
     }
 }

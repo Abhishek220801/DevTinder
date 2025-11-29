@@ -1,18 +1,21 @@
+import 'dotenv/config.js'
 import express from "express"
-import { adminAuth, userAuth } from "./middlewares/auth.js"
+import { userAuth } from "./middlewares/auth.js"
 import User from "../src/models/user.js"
 import { connectDB } from "./config/database.js"
 import { validateSignUpData } from "./utils/validation.js"
 import validator from 'validator'
 import bcrypt from 'bcrypt'
 import cookieParser from "cookie-parser"
+import jwt from 'jsonwebtoken'
 
 const app = express()
 const port = 7777
+const JWT_SECRET = process.env.JWT_SECRET;
 
 app.use(express.json())
+app.use(cookieParser())
 
-app.use("/admin", adminAuth)
 app.use("/user", userAuth)
 
 app.post('/signup', async (req, res) => {
@@ -50,8 +53,10 @@ app.post('/login', async (req, res) => {
         }
         const isPasswordValid = await bcrypt.compare(password, foundUser.password);
         if(isPasswordValid){
-            res.cookie('token', 'j6nkj3jntzzdfjwj2pu5u5')
-            res.send('Login successful!')
+            console.log(JWT_SECRET)
+            const token = jwt.sign({_id: foundUser._id}, JWT_SECRET);
+            res.cookie('token', token);
+            res.send('Login successful!');
         }
         else 
             throw new Error('Invalid credentials')
@@ -60,67 +65,20 @@ app.post('/login', async (req, res) => {
     }
 })
 
-app.get('/profile', async (req, res) => {
-    const cookies = req.cookies;
-    console.log(cookies);
-    res.send("Reading Cookies");
-})
-
-// Feed API - get all users from DB
-app.get('/user', async (req, res) => {
-    const userEmail = req.body.emailId;
-    try{
-        const user = await User.findOne({emailId: userEmail})
-        if(!user){
-            return res.status(404).send("User not found")
-        }
-        else res.json({user});
-    } catch(err){
-        return res.status(400).send("Something went wrong")
-    }
-})
-
-app.get('/feed', async (req, res) => {
-    const users = await User.find({});
-    return res.json(users); 
-})
-
-app.delete('/user', async (req, res) => {
-    const userId = req.body.userId;
-    try{
-        const user = await User.findOneAndDelete({_id: userId})
-        res.send('User deleted successfully');
+app.get('/profile', userAuth, async (req, res) => {
+    try {
+        const user = req.user;
+        res.send('Logged in user: ' + user.firstName);
     } catch (err) {
-        return res.status(400).send('Unable to remove the user')
+        res.status(400).send('ERROR : ' + err.message);
     }
+    
 })
 
-app.patch('/user/:userId', async (req, res) => {
-    const userId = req.params?.userId;
-    if(!userId) return res.send('Must provide a valid user ID');
-    const data = req.body;
-    const ALLOWED_UPDATES = [
-        "photoUrl",
-        "about",
-        "gender",
-        "age",
-        "skills",
-        "password",
-    ]
-
-    try{
-        const isUpdateAllowed = Object.keys(data).every((k) => ALLOWED_UPDATES.includes(k));
-        if(!isUpdateAllowed) throw new Error('Update not allowed')
-    
-        if(data?.skills.length > 10) throw new Error('Cannot add more than 10 skills')
-        await User.findOneAndUpdate({_id: userId}, data, {
-            returnDocument: "after",
-            runValidators: true,
-        });
-        res.send('User details updated successfully')
-    } catch(err){
-        return res.status(400).send('UPDATE FAILED: '+err.message);
-    }
+app.post('/sendConnectionRequest', userAuth, async(req, res) => {
+    const user = req.user;
+    console.log('Sending a connection request');
+    res.send(user.firstName + ' sent the connection request!');
 })
 
 app.listen(port, () => {
