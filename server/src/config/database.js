@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 export async function connectDB(){
     try {
-        await mongoose.connection(process.env.DB_URL);
+        await mongoose.connect(process.env.DB_URL);
     } catch (err) {
         console.error(`Error connecting to MongoDB: ${err}`);
     }
@@ -10,6 +10,6 @@ export async function connectDB(){
 
 connectDB()
     .then(console.log('Connected to MongoDB'))
-    .catch((err) => console.error('Error connecting to MongoDB'))
+    .catch((err) => console.error('Error connecting to MongoDB : ', err))
 
 

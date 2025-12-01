@@ -1,7 +1,7 @@
 import validator from 'validator'
 
 export const validateSignUpData = (req) => {
-    const {firstName, emailId, password} = req.body;
+    const {firstName, password} = req.body;
     if(!firstName) 
         throw new Error('Please enter a first name')
     else if(firstName.length<3 && firstName.length>64)
