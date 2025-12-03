@@ -7,11 +7,14 @@ const userSchema = new Schema({
     firstName: {
         type: String,
         required: true,
+        trim: true,
         minLength: 3,
         maxLength: 50,
     },
     lastName: {
         type: String,
+        trim: true,
+        maxLength: 50,
     },
     emailId: {
         type: String,
@@ -20,17 +23,15 @@ const userSchema = new Schema({
         lowercase: true,
         trim: true,
         validate(value){
-            if(!validator.isEmail(value)) throw new Error('Invalid email address')
-        }
+            if(!validator.isEmail(value)) throw new Error('Invalid email address');
+        },
     },
     password: {
         type: String,
         required: true,
         minLength: 8,
-        maxLength: 64,
-        validate(value){
-            if(!validator.isStrongPassword(value)) throw new Error('Enter a strong password: ' + value);
-        }
+        maxLength: 1024,
+        select: false,
     },
     age: {
         type: Number,
@@ -40,36 +41,61 @@ const userSchema = new Schema({
         type: String,
         enum: {
             values: ["male", "female", "other"],
-            message: '{VALUE} is not a valid gender type'
-        }
+            message: '{VALUE} is not a valid gender type',
+        },
     },
     photoUrl: {
         type: String,
         default: "https://geographyandyou.com/images/user-profile.png",
         validate(value){
-            if(!validator.isURL(value)) throw new Error('Invalid Photo URL: ' + value);
-        }
+            if(value && !validator.isURL(value)) throw new Error('Invalid Photo URL: ' + value);
+        },
     },
     about: {
         type: String,
         default: "This is a default about of the user",
+        trim: true, 
+        maxLength: 500,
     },
     skills: {
         type: [String],
+        default: [],
+    },
+    emailVerified: {
+        type: Boolean,
+        default: false,
     }
-}, {timestamps: true})
+}, {timestamps: true, toJSON: {virtuals: true}, toObject: {virtuals: true}})
+
+userSchema.index({firstName: 1, lastName: 1})
+
+userSchema.methods.toJSON = function(){
+    const obj = this.toObject();
+    delete obj.password;
+    delete obj.__v;
+    return obj;
+}
+
+userSchema.pre('save', async function (next) {
+    if(!this.isModified('password')) return next();
+    // validate raw password before hashing 
+    if(!validator.isStrongPassword(this.password, {
+        minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1
+    })){
+        return next(new Error(`Your password does not meet strength requirements`))
+    }
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+})
 
 userSchema.methods.getJWT = function(){
-    const token = jwt.sign({_id: this._id}, process.env.JWT_SECRET, {
+    return jwt.sign({_id: this._id.toString()}, process.env.JWT_SECRET, {
         expiresIn: '7d'
-    })
-    return token;
+    });
 }
 
 userSchema.methods.validatePassword = async function(passwordInpByUser){
-    const passwordHash = this.password;
-    const isPasswordValid = await bcrypt.compare(passwordInpByUser, passwordHash);
-    return isPasswordValid;
+    return bcrypt.compare(passwordInpByUser, this.password);
 }
 
 const userModel = model('User', userSchema);
