@@ -34,7 +34,7 @@ authRouter.post('/login', async (req, res) => {
     try{
         const {emailId, password} = req.body;
         if(!validator.isEmail(emailId)) throw new Error('Please enter a valid email address');
-        const foundUser = await User.findOne({emailId})
+        const foundUser = await User.findOne({emailId}).select('+password')
         if(!foundUser){
             throw new Error('Invalid credentials')
         }
