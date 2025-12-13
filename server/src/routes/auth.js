@@ -33,6 +33,7 @@ authRouter.post('/signup', async (req, res) => {
 authRouter.post('/login', async (req, res) => {
     try{
         const {emailId, password} = req.body;
+        if(req.cookies?.token) throw new Error('You must log out from current session to login.');
         const foundUser = await User.findOne({emailId}).select('+password')
         if(!foundUser){
             throw new Error('Invalid credentials')
