@@ -1,5 +1,4 @@
 import express from 'express'
-import bcrypt from 'bcrypt'
 import validator from 'validator'
 import User from '../models/user.js'
 const authRouter = express.Router();
@@ -45,7 +44,7 @@ authRouter.post('/login', async (req, res) => {
             res.cookie('token', token, {
                 expires: new Date(Date.now() + 8 * 3600000),
             });
-            res.send('Login successful!');
+            res.send(foundUser);
         }
         else 
             throw new Error('Invalid credentials')
