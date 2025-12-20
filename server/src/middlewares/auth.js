@@ -7,12 +7,8 @@ export const userAuth = async (req, res, next) => {
         let token = req.cookies?.token;
         // console.log(token)
         if(!token){
-            const authHeader = req.header('Authorization');
-            if(!authHeader?.startsWith('Bearer ')){
-                token = authHeader.replace("Bearer ", "").trim();
-            }
+            return res.status(401).send("Authentication required")
         };
-        if (!token) throw new Error("Authentication required");
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         // console.log(decoded);
         const user = await User.findById(decoded._id).select('+password');

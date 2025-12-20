@@ -12,6 +12,8 @@ authRouter.post('/signup', async (req, res) => {
         // encrypt the password 
         const {firstName, lastName, emailId, password} = req.body;
         if(!validator.isEmail(emailId)) throw new Error('Please enter a valid email address');
+        const foundUser = await User.findOne({emailId});
+        if(foundUser) return res.send("That email address is already taken.");
 
         // create instance of user model
         const user = new User({
@@ -42,7 +44,11 @@ authRouter.post('/login', async (req, res) => {
         if(isPasswordValid){
             let token = await foundUser.getJWT();
             res.cookie('token', token, {
+                httpOnly: true,
+                secure: false,
+                sameSite: 'lax',
                 expires: new Date(Date.now() + 8 * 3600000),
+                maxAge: 7*24*60*60*1000 
             });
             res.send(foundUser);
         }
