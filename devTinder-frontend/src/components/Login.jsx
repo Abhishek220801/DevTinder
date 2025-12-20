@@ -33,7 +33,7 @@ const Login = () => {
         dispatch(addUser(res.data))
         navigate('/');
       } catch (err) {
-        setError(err.response?.data?.message || "Login failed, Please try again.")
+        setError(err.response?.data?.message || "Wrong credentials, Please try again.")
         console.error(err);
       } finally{
         setIsLoading(false);
@@ -49,19 +49,13 @@ const Login = () => {
       <fieldset className="fieldset bg-base-300 border-base-300 rounded-box w-xs border p-4 ">
         <legend className="fieldset-legend">Login</legend>
 
-        {error && (
-          <div className="alert alert-error mb-4">
-            <span>{error}</span>
-          </div>
-        )}
-
         <label className="label">Email</label>
         <input
           type="email"
           className="input"
           placeholder="Email"
           value={emailId}
-          onChange={(e) => setEmailId(e.target.value)}
+          onChange={(e) => setEmailId(e.target.value) + setError('')}
           onKeyPress={handleKeyPress}
           disabled={isLoading}
         />
@@ -72,10 +66,18 @@ const Login = () => {
           className="input"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={
+            (e) => setPassword(e.target.value) + setError('')
+          }
           onKeyPress={handleKeyPress}
           disabled={isLoading}
         />
+
+        {error && (
+          <div className="text-error mt-2 mb-1">
+            <span>{error}</span>
+          </div>
+        )}
 
         <button className="btn btn-neutral mt-4 w-full" onClick={handleLogin} disabled={isLoading}>
           {isLoading ? (

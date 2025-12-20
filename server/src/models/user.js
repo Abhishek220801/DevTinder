@@ -43,6 +43,7 @@ const userSchema = new Schema({
             values: ["male", "female", "other"],
             message: '{VALUE} is not a valid gender type',
         },
+        default: "male",
     },
     photoUrl: {
         type: String,

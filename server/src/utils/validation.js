@@ -18,6 +18,7 @@ export const validateProfileEditData = (req) => {
     "emailId",
     "photoUrl",
     "age",
+    "gender",
     "about",
     "skills",
   ]
