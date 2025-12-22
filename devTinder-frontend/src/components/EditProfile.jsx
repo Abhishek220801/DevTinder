@@ -1,172 +1,161 @@
-import { useState } from "react"
-import FeedCard from "./FeedCard.jsx"
-import {BASE_URL} from '../utils/constants.js'
-import { useDispatch } from "react-redux"
-import {addUser} from '../utils/userSlice.js'
-import axios from 'axios';
+import { useEffect, useState } from "react";
+import FeedCard from "./FeedCard.jsx";
+import { BASE_URL } from "../utils/constants.js";
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/userSlice.js";
+import axios from "axios";
 
 const EditProfile = ({ user }) => {
-    const [formData, setFormData] = useState({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        emailId: user.emailId || "",
-        photoUrl: user.photoUrl || "",
-        age: user.age || "",
-        gender: user.gender || "",
-        about: user.about || "",
-        skills: user.skills || [],
-    })
-    
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    emailId: "",
+    photoUrl: "",
+    age: "",
+    gender: "",
+    about: "",
+    skills: [],
+  });
+
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    if (!user) return;
+
+    setFormData({
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      emailId: user.emailId || "",
+      photoUrl: user.photoUrl || "",
+      age: user.age || "",
+      gender: user.gender || "",
+      about: user.about || "",
+      skills: user.skills || [],
+    });
+  }, [user]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-    setError("")
-    setSuccess("")
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError("");
+    setSuccess("");
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    // basic guardrails
+    e.preventDefault();
     if (!formData.firstName || !formData.emailId) {
-      setError("First name and email are required")
-      setSuccess('');
-      return
+      setError("First name and email are required");
+      return;
     }
-
-    await saveProfile();
-  }
+    saveProfile();
+  };
 
   const saveProfile = async () => {
-    try{
-        setError("")
-        setSuccess("")
-        const res = await axios.patch(BASE_URL+'/profile/edit', 
-            formData, {withCredentials: true}
-        )
-        dispatch(addUser(res?.data?.data));
-        setSuccess("Profile updated successfully")
+    try {
+      setError("");
+      setSuccess("");
+      const res = await axios.patch(
+        BASE_URL + "/profile/edit",
+        formData,
+        { withCredentials: true }
+      );
+      dispatch(addUser(res?.data?.data));
+      setSuccess("Profile updated successfully");
     } catch (err) {
-        console.log(err);
-        setError(err?.data || 'Something went wrong. Try again.');
+      setError(
+        err?.response?.data?.message || "Something went wrong. Try again."
+      );
     }
-  }
+  };
+
+  if (!user) return null;
 
   return (
-    <div className="flex space-x-40 justify-center">
-      <div className="flex my-10">
+    <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        
+        {/* EDIT FORM */}
         <form
           onSubmit={handleSubmit}
-          className="w-full max-w-md bg-base-200 p-6 rounded-lg shadow"
+          className="bg-base-200 rounded-xl shadow-lg p-6 
+                     max-h-[75vh] overflow-y-auto"
         >
-          <h2 className="text-xl font-semibold mb-4">Edit Profile</h2>
+          <h2 className="text-2xl font-semibold mb-6 tracking-tight">
+            Edit Profile
+          </h2>
 
-          {!success && error && <p className="text-red-500 mb-2">{error}</p>}
-          {!error && success && <p className="text-green-500 mb-2">{success}</p>}
+          {error && <p className="text-red-500 mb-3">{error}</p>}
+          {success && <p className="text-green-500 mb-3">{success}</p>}
 
-          {/* First Name */}
-          <label className="label">First Name</label>
-          <input
-            type="text"
-            name="firstName"
-            className="input input-bordered w-full mb-3"
-            value={formData.firstName}
-            onChange={handleChange}
-          />
+          {[
+            ["First Name", "firstName", "text"],
+            ["Last Name", "lastName", "text"],
+            ["Email", "emailId", "email"],
+            ["Photo URL", "photoUrl", "text"],
+            ["Age", "age", "number"],
+            ["Gender", "gender", "text"],
+          ].map(([label, name, type]) => (
+            <div key={name} className="mb-4">
+              <label className="text-sm text-gray-400 block mb-1">
+                {label}
+              </label>
+              <input
+                type={type}
+                name={name}
+                value={formData[name]}
+                onChange={handleChange}
+                className="input input-bordered w-full h-11"
+              />
+            </div>
+          ))}
 
-          {/* Last Name */}
-          <label className="label">Last Name</label>
-          <input
-            type="text"
-            name="lastName"
-            className="input input-bordered w-full mb-3"
-            value={formData.lastName}
-            onChange={handleChange}
-          />
+          <div className="mb-4">
+            <label className="text-sm text-gray-400 block mb-1">
+              About
+            </label>
+            <textarea
+              name="about"
+              value={formData.about}
+              onChange={handleChange}
+              className="textarea textarea-bordered w-full min-h-[100px]"
+            />
+          </div>
 
-          {/* Email */}
-          <label className="label">Email</label>
-          <input
-            type="email"
-            name="emailId"
-            className="input input-bordered w-full mb-3"
-            value={formData.emailId}
-            onChange={handleChange}
-          />
-
-          {/* Photo URL */}
-          <label className="label">Photo URL</label>
-          <input
-            type="text"
-            name="photoUrl"
-            className="input input-bordered w-full mb-3"
-            value={formData.photoUrl}
-            onChange={handleChange}
-          />
-
-          {/* Age */}
-          <label className="label">Age</label>
-          <input
-            type="number"
-            name="age"
-            className="input input-bordered w-full mb-3"
-            value={formData.age}
-            onChange={handleChange}
-          />
-
-          {/* Gender */}
-          <label className="label">Gender</label>
-          <input
-            type="string"
-            name="gender"
-            className="input input-bordered w-full mb-3"
-            value={formData.gender}
-            onChange={handleChange}
-          />
-
-          {/* About */}
-          <label className="label">About</label>
-          <textarea
-            name="about"
-            className="textarea textarea-bordered w-full mb-3"
-            value={formData.about}
-            onChange={handleChange}
-          />
-
-          {/* Skills */}
-          <label className="label">Skills (comma separated)</label>
-          <input
-            type="text"
-            name="skills"
-            className="input input-bordered w-full mb-4"
-            value={formData.skills.join(', ')}
-            onChange={(e) =>
-            setFormData((prev) => ({
-            ...prev,
-            skills: e.target.value
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean),
-            }))
-            } 
-          />
+          <div className="mb-6">
+            <label className="text-sm text-gray-400 block mb-1">
+              Skills (comma separated)
+            </label>
+            <input
+              type="text"
+              value={formData.skills.join(", ")}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  skills: e.target.value
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean),
+                }))
+              }
+              className="input input-bordered w-full h-11"
+            />
+          </div>
 
           <button type="submit" className="btn btn-primary w-full">
             Save Changes
           </button>
         </form>
-      </div>
-      <FeedCard user={formData}/>
-    </div>
-  )
-}
 
-export default EditProfile
+        {/* PREVIEW (READ-ONLY) */}
+        <div className="sticky top-24">
+          <FeedCard user={formData} variant="preview" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default EditProfile;

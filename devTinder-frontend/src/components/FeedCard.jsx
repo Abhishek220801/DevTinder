@@ -15,14 +15,9 @@ const FeedCard = ({ user }) => {
       {/* Body */}
       <div className="card-body p-5 space-y-3">
         <h2 className="card-title text-xl font-semibold">
-          {firstName} {lastName || ""}
+          {firstName} {lastName || ""} {age}
         </h2>
-
-        {age || gender && (
-          <span className="absolute bottom-3 left-3 bg-black/60 text-white text-sm px-3 py-1 rounded-full">
-            {age || ''} · {gender || ''}
-          </span>
-        )}
+        
         {about && (
           <p className="text-sm text-gray-400 line-clamp-3">
             {about}
@@ -43,14 +38,6 @@ const FeedCard = ({ user }) => {
 )}
 
         {/* Actions */}
-        <div className="card-actions justify-between pt-4">
-          <button className="btn btn-outline btn-error w-[48%]">
-            Ignore
-          </button>
-          <button className="btn btn-primary w-[48%]">
-            Interested
-          </button>
-        </div>
       </div>
     </div>
   )

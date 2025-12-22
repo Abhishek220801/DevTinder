@@ -14,8 +14,8 @@ const Login = () => {
   const navigate = useNavigate()
   const user = useSelector((store) => store.user);
 
-  useEffect(() => {
-    if(user) navigate('/');
+  useEffect(() => { 
+    if(user) navigate('/feed');
   }, [user, navigate]);
 
   const handleLogin = async () => {
@@ -31,7 +31,7 @@ const Login = () => {
           { withCredentials: true }
         )
         dispatch(addUser(res.data))
-        navigate('/');
+        navigate('/feed');
       } catch (err) {
         setError(err.response?.data?.message || "Wrong credentials, Please try again.")
         console.error(err);
