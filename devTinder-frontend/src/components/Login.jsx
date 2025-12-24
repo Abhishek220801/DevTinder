@@ -15,7 +15,7 @@ const Login = () => {
   const user = useSelector((store) => store.user);
 
   useEffect(() => { 
-    if(user) navigate('/feed');
+    if(user) navigate('/');
   }, [user, navigate]);
 
   const handleLogin = async () => {
@@ -30,6 +30,7 @@ const Login = () => {
           },
           { withCredentials: true }
         )
+        console.log('user data ', res.data)
         dispatch(addUser(res.data))
         navigate('/feed');
       } catch (err) {

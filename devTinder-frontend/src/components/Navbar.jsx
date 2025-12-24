@@ -6,6 +6,7 @@ import { BASE_URL } from "../utils/constants";
 
 const Navbar = () => {
   const user = useSelector((store) => store.user);
+  console.log(user) 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -20,7 +21,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="navbar bg-base-300 shadow-sm">
+    <div className="navbar bg-slate-900 shadow-sm">
       <div className="flex-1">
         <Link to="/" className="btn btn-ghost text-xl">
           👨🏼‍💻DevTinder
@@ -59,6 +60,9 @@ const Navbar = () => {
                 </li>
                 <li>
                   <Link to='/connections'>Connections</Link>
+                </li>
+                <li>
+                  <Link to='/requests'>Requests</Link>
                 </li>
                 <li>
                   <Link onClick={handleLogout}>Logout</Link>

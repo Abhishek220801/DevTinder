@@ -34,7 +34,7 @@ const Body = () => {
       <Navbar />
 
       {/* main content grows, footer sticks */}
-      <main className="flex-1">
+      <main className="flex-1 bg-black">
         <Outlet />
       </main>
 
