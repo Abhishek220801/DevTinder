@@ -29,7 +29,7 @@ const FeedCard = ({ user }) => {
         {/* Gradient Overlay on Image */}
         <div className="relative h-80 overflow-hidden">
           <img
-            src={photoUrl || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400"}
+            src={photoUrl || import.meta.env.VITE_DEFAULT_PHOTOURL}
             alt={`${firstName}'s profile`}
             className="w-full h-full object-cover"
           />
