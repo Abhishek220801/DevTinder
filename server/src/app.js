@@ -1,10 +1,10 @@
-import 'dotenv/config.js';
+import 'dotenv/config';
 import express from "express";
 import { userAuth } from "./middlewares/auth.js";
 import { connectDB } from "./config/database.js";
 import cookieParser from "cookie-parser";
 import cors from 'cors';
-
+import fs from 'fs';
 import authRouter from './routes/auth.js'
 import profileRouter from './routes/profile.js'
 import requestRouter from './routes/request.js'
@@ -13,8 +13,16 @@ import userRouter from './routes/user.js'
 const app = express()
 const port = 7777
 
+if(!fs.existsSync('uploads')){
+  fs.mkdirSync('uploads');
+}
+
 app.use(express.json())
 app.use(cookieParser())
+app.use(express.urlencoded({extended: false}))
+
+app.use('/uploads', express.static('uploads'))
+
 app.use(cors({    
   origin: 'http://localhost:5173',
   credentials: true,

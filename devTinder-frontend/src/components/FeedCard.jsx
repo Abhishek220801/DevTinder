@@ -6,10 +6,16 @@ import { BASE_URL } from '../utils/constants';
 import { removeUserFromFeed } from '../utils/FeedSlice';
 
 const FeedCard = ({ user }) => {
-  const { _id, firstName, lastName, about, skills, photoUrl, age, gender, location, currentRole, company, github, linkedin, twitter } = user;
+  const { _id, firstName, lastName, about, skills, photoUrl, age,gender, location, currentRole, company, github, linkedin, twitter } = user;
   const [isFlipping, setIsFlipping] = useState(false);
 
   const dispatch = useDispatch();
+
+  const getPhotoUrl = (photoUrl) => {
+  if (!photoUrl) return "https://geographyandyou.com/images/user-profile.png";
+  if (photoUrl.startsWith('http')) return photoUrl;
+  return `${BASE_URL}${photoUrl}`; // Adjust port as needed
+};
   
     const handleSendRequest = async (status) => {
       if(isFlipping) return;
@@ -29,7 +35,7 @@ const FeedCard = ({ user }) => {
         {/* Gradient Overlay on Image */}
         <div className="relative h-80 overflow-hidden">
           <img
-            src={photoUrl || import.meta.env.VITE_DEFAULT_PHOTOURL}
+            src={getPhotoUrl(photoUrl)}
             alt={`${firstName}'s profile`}
             className="w-full h-full object-cover"
           />

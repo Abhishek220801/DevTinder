@@ -17,6 +17,7 @@ export const validateProfileEditData = (req) => {
     "lastName",
     "emailId",
     "photoUrl",
+    "photo",
     "age",
     "location",
     "currentRole",
@@ -28,6 +29,8 @@ export const validateProfileEditData = (req) => {
     "about",
     "skills",
   ]
-  const isEditAllowed = Object.keys(req.body).every(field => allowedEditFields.includes(field))
-  return isEditAllowed;
+  const bodyFields = Object.keys(req.body || {});
+  const bodyValid = bodyFields.every((f) => allowedEditFields.includes(f));
+  if (req.file && bodyFields.length === 0) return true;
+  return bodyValid;
 }
