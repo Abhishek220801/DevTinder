@@ -71,7 +71,7 @@ This project focuses on **backend architecture, authentication, data modeling, a
 - Email notifications using **Amazon SES**
 - Cron jobs & background tasks
 - WebSockets for real-time features
-- Payment Gateway Integration (Razorpay)
+- Payment Gateway Integration (Razorpay + Stripe)
 
 ---
 
