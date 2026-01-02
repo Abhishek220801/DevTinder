@@ -30,6 +30,7 @@ This project focuses on **backend architecture, authentication, data modeling, a
 ### 🔁 Core Platform Logic
 - Developer discovery feed
 - Connection request system (like / pass)
+- Make friends / connections
 - Profile creation & editing
 - Pagination-ready APIs (REST APIs)
 
