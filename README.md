@@ -75,7 +75,7 @@ This project focuses on **backend architecture, authentication, data modeling, a
 
 ---
 
-## 🧭 Planned Enhancements
+## 🧭 Planned Enhancements (ongoing)
 
 - Real-time chat system
 - Notifications & alerts
