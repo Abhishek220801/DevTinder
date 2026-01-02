@@ -71,7 +71,7 @@ This project focuses on **backend architecture, authentication, data modeling, a
 - Email notifications using **Amazon SES**
 - Cron jobs & background tasks
 - WebSockets for real-time features
-- Payment gateway integration (Razorpay)
+- Payment Gateway Integration (Razorpay + Stripe)
 
 ---
 
@@ -101,4 +101,5 @@ DevConnect is built to:
 
 **Active Development**  
 This repository is continuously evolving with new features, refactors, and infrastructure upgrades.
+
 
