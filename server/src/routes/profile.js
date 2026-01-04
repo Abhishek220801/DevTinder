@@ -66,82 +66,95 @@ profileRouter.patch(
   userAuth,
   upload.single("photo"),
   async (req, res) => {
+    console.log("========== DEBUG ==========")
+    console.log("File received:", req.file ? "YES" : "NO")
+    if (req.file) {
+      console.log("Filename:", req.file.filename)
+      console.log("Path:", req.file.path)
+      console.log("Size:", req.file.size)
+    }
+    console.log("Body:", req.body)
+    console.log("==========================")
+
     try {
-      console.log('========== EDIT PROFILE REQUEST ==========')
-      console.log('User ID:', req.user._id)
-      console.log('Request body:', req.body)
-      console.log('Request file:', req.file)
-      console.log('=========================================')
+      console.log("========== EDIT PROFILE REQUEST ==========")
+      console.log("User ID:", req.user._id)
+      console.log("Request body:", req.body)
+      console.log("Request file:", req.file)
+      console.log("=========================================")
 
       if (!validateProfileEditData(req)) {
         return res.status(400).json({ message: "Invalid Edit Request" })
       }
-      
+
       const loggedInUser = req.user
       const updates = req.body || {}
-      
+
       if (Object.keys(updates).length === 0 && !req.file) {
         return res.status(400).json({ message: "No fields provided" })
       }
 
       // Parse skills
-      if ('skills' in updates) {
-        if (typeof updates.skills === 'string') {
+      if ("skills" in updates) {
+        if (typeof updates.skills === "string") {
           try {
             const parsed = JSON.parse(updates.skills)
             updates.skills = Array.isArray(parsed) ? parsed : []
           } catch (e) {
-            console.error('Skills parsing error:', e)
+            console.error("Skills parsing error:", e)
             updates.skills = []
           }
         }
         if (Array.isArray(updates.skills)) {
           updates.skills = updates.skills
-            .filter(skill => skill && typeof skill === 'string' && skill.trim() !== '')
-            .map(skill => skill.trim())
+            .filter(
+              (skill) =>
+                skill && typeof skill === "string" && skill.trim() !== ""
+            )
+            .map((skill) => skill.trim())
         } else {
           updates.skills = []
         }
       }
 
-      console.log('Parsed updates:', updates)
+      console.log("Parsed updates:", updates)
 
       // Update fields
       Object.keys(updates).forEach((key) => {
-        if (key === 'photoUrl') return // Skip photoUrl from body
+        if (key === "photoUrl") return // Skip photoUrl from body
         loggedInUser[key] = updates[key]
       })
 
       // Handle file upload
       if (req.file) {
         const photoPath = `/uploads/${req.file.filename}`
-        console.log('File uploaded! Setting photoUrl to:', photoPath)
+        console.log("File uploaded! Setting photoUrl to:", photoPath)
         loggedInUser.photoUrl = photoPath
       }
 
-      console.log('User before save:', {
+      console.log("User before save:", {
         _id: loggedInUser._id,
         firstName: loggedInUser.firstName,
         photoUrl: loggedInUser.photoUrl,
-        skills: loggedInUser.skills
+        skills: loggedInUser.skills,
       })
 
       const savedUser = await loggedInUser.save()
-      
-      console.log('User after save:', {
+
+      console.log("User after save:", {
         _id: savedUser._id,
         firstName: savedUser.firstName,
         photoUrl: savedUser.photoUrl,
-        skills: savedUser.skills
+        skills: savedUser.skills,
       })
-      
+
       return res.json({
         message: `${savedUser.firstName}, your profile was updated successfully!`,
         data: savedUser,
       })
     } catch (err) {
-      console.error('Profile edit error:', err)
-      console.error('Error stack:', err.stack)
+      console.error("Profile edit error:", err)
+      console.error("Error stack:", err.stack)
       return res.status(400).json({
         message: err.message || "Edit request failed",
       })

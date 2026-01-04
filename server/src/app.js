@@ -9,9 +9,14 @@ import authRouter from './routes/auth.js';
 import profileRouter from './routes/profile.js';
 import requestRouter from './routes/request.js';
 import userRouter from './routes/user.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const app = express();
 const port = 7777;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 if(!fs.existsSync('uploads')){
   fs.mkdirSync('uploads');
@@ -21,7 +26,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({extended: false}));
 
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(cors({    
   origin: 'http://localhost:5173',

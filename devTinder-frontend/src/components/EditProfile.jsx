@@ -4,10 +4,12 @@ import { BASE_URL } from "../utils/constants.js"
 import { useDispatch } from "react-redux"
 import { addUser } from "../utils/userSlice.js"
 import axios from "axios"
+import { useRef } from "react"
 
 const EditProfile = ({ user }) => {
   const dispatch = useDispatch()
   const [previewPhotoUrl, setPreviewPhotoUrl] = useState("")
+  const hasInitialized = useRef(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -33,7 +35,7 @@ const EditProfile = ({ user }) => {
   const [originalData, setOriginalData] = useState({})
 
   useEffect(() => {
-    if (!user) return
+    if (!user || hasInitialized.current) return
 
     const userData = {
       firstName: user.firstName || "",
@@ -54,6 +56,7 @@ const EditProfile = ({ user }) => {
 
     setFormData((prev) => ({ ...prev, ...userData }))
     setOriginalData(userData)
+    hasInitialized.current = true
   }, [user])
 
   const handleChange = (e) => {
@@ -172,117 +175,103 @@ const EditProfile = ({ user }) => {
   // }
 
   const saveProfile = async () => {
-  try {
-    console.log('========== SAVE PROFILE START ==========')
-    console.log('Current formData:', formData)
-    console.log('Current previewPhotoUrl:', previewPhotoUrl)
-    
-    setError("")
-    setSuccess("")
+    try {
+      console.log("========== SAVE PROFILE START ==========")
+      setError("")
+      setSuccess("")
 
-    const data = new FormData()
+      const data = new FormData()
 
-    const fieldsToSend = [
-      "firstName",
-      "lastName",
-      "emailId",
-      "age",
-      "gender",
-      "about",
-      "location",
-      "currentRole",
-      "company",
-      "github",
-      "linkedin",
-      "twitter",
-    ]
+      // Add all text fields
+      const fieldsToSend = [
+        "firstName",
+        "lastName",
+        "emailId",
+        "age",
+        "gender",
+        "about",
+        "location",
+        "currentRole",
+        "company",
+        "github",
+        "linkedin",
+        "twitter",
+      ]
 
-    fieldsToSend.forEach((key) => {
-      const value = formData[key]
-      if (value !== undefined && value !== null) {
-        data.append(key, value)
-      } else {
-        data.append(key, "")
+      fieldsToSend.forEach((key) => {
+        const value = formData[key]
+        if (value !== undefined && value !== null && value !== "") {
+          data.append(key, value)
+        }
+      })
+
+      // Add skills
+      const skills = formData.skills || []
+      data.append("skills", JSON.stringify(skills))
+
+      // Add photo file if exists
+      if (formData.photo) {
+        console.log("Uploading photo:", formData.photo.name)
+        data.append("photo", formData.photo)
       }
-    })
 
-    const skills = formData.skills || []
-    console.log("Skills to send:", skills)
-    data.append("skills", JSON.stringify(skills))
+      // Send request
+      const res = await axios.patch(BASE_URL + "/profile/edit", data, {
+        withCredentials: true,
+      })
 
-    if (formData.photo) {
-      console.log("Sending photo file:", formData.photo.name, formData.photo.size, "bytes")
-      data.append("photo", formData.photo)
-    } else {
-      console.log("No photo file to send")
-    }
+      console.log("Server response:", res.data)
 
-    console.log("FormData entries:")
-    for (let [key, value] of data.entries()) {
-      if (value instanceof File) {
-        console.log(key, ": [File]", value.name, value.size, "bytes")
-      } else {
-        console.log(key, ":", value)
+      // Update Redux
+      dispatch(addUser(res.data.data))
+
+      // Update local state with server response
+      const updatedData = {
+        firstName: res.data.data.firstName || "",
+        lastName: res.data.data.lastName || "",
+        emailId: res.data.data.emailId || "",
+        photoUrl: res.data.data.photoUrl || "", // This now has /uploads/xxx.jpg
+        age: res.data.data.age || "",
+        gender: res.data.data.gender || "",
+        about: res.data.data.about || "",
+        skills: res.data.data.skills || [],
+        location: res.data.data.location || "",
+        currentRole: res.data.data.currentRole || "",
+        company: res.data.data.company || "",
+        github: res.data.data.github || "",
+        linkedin: res.data.data.linkedin || "",
+        twitter: res.data.data.twitter || "",
       }
+
+      // Clean up preview blob URL
+      if (previewPhotoUrl) {
+        URL.revokeObjectURL(previewPhotoUrl)
+      }
+      const newPhotoUrl = res.data.data.photoUrl
+
+      setFormData((prev) => ({
+        ...prev,
+        ...updatedData,
+        photoUrl: newPhotoUrl || prev.photoUrl,
+        photo: null,
+      }))
+
+      if (newPhotoUrl && previewPhotoUrl) {
+        URL.revokeObjectURL(previewPhotoUrl)
+        setPreviewPhotoUrl("")
+      }
+
+      setOriginalData(updatedData) // Update original to prevent "no changes" on next save
+
+      setSuccess("Profile updated successfully")
+      console.log("========== SAVE PROFILE END ==========")
+    } catch (err) {
+      console.error("Save profile error:", err)
+      setError(
+        err?.response?.data?.message || "Something went wrong. Try again."
+      )
     }
-
-    console.log("Sending request to:", BASE_URL + "/profile/edit")
-
-    const res = await axios.patch(BASE_URL + "/profile/edit", data, {
-      withCredentials: true,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    })
-
-    console.log("========== SERVER RESPONSE ==========")
-    console.log("Full response:", res.data)
-    console.log("PhotoUrl from server:", res.data.data.photoUrl)
-    console.log("Skills from server:", res.data.data.skills)
-    console.log("====================================")
-
-    // Update Redux store
-    dispatch(addUser(res?.data?.data))
-
-    const updatedData = {
-      firstName: res.data.data.firstName || "",
-      lastName: res.data.data.lastName || "",
-      emailId: res.data.data.emailId || "",
-      photoUrl: res.data.data.photoUrl || "",
-      age: res.data.data.age || "",
-      gender: res.data.data.gender || "",
-      about: res.data.data.about || "",
-      skills: res.data.data.skills || [],
-      location: res.data.data.location || "",
-      currentRole: res.data.data.currentRole || "",
-      company: res.data.data.company || "",
-      github: res.data.data.github || "",
-      linkedin: res.data.data.linkedin || "",
-      twitter: res.data.data.twitter || "",
-    }
-
-    // Clear preview
-    if (previewPhotoUrl) {
-      console.log("Clearing preview URL:", previewPhotoUrl)
-      URL.revokeObjectURL(previewPhotoUrl)
-    }
-    setPreviewPhotoUrl("")
-
-    console.log("Setting formData to:", updatedData)
-    setFormData({ ...updatedData, photo: null })
-
-    console.log("========== SAVE PROFILE END ==========")
-    setSuccess("Profile updated successfully")
-  } catch (err) {
-    console.error("========== SAVE PROFILE ERROR ==========")
-    console.error("Error:", err)
-    console.error("Error response:", err.response?.data)
-    console.error("Error status:", err.response?.status)
-    setError(
-      err?.response?.data?.message || "Something went wrong. Try again."
-    )
   }
-}
 
   useEffect(() => {
     return () => {
@@ -306,12 +295,12 @@ const EditProfile = ({ user }) => {
 
   const displayPhotoUrl = previewPhotoUrl || formData.photoUrl
 
-  console.log('========== COMPONENT RENDER ==========')
-console.log('previewPhotoUrl:', previewPhotoUrl)
-console.log('formData.photoUrl:', formData.photoUrl)
-console.log('displayPhotoUrl:', displayPhotoUrl)
-console.log('formData.photo:', formData.photo)
-console.log('====================================')
+  console.log("========== COMPONENT RENDER ==========")
+  console.log("previewPhotoUrl:", previewPhotoUrl)
+  console.log("formData.photoUrl:", formData.photoUrl)
+  console.log("displayPhotoUrl:", displayPhotoUrl)
+  console.log("formData.photo:", formData.photo)
+  console.log("====================================")
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
@@ -445,7 +434,6 @@ console.log('====================================')
             Live Preview
           </div>
           <FeedCard
-            key={displayPhotoUrl}
             user={{
               ...formData,
               photoUrl: displayPhotoUrl,
